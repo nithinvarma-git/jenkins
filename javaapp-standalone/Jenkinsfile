@@ -1,0 +1,82 @@
+pipeline {
+    agent { label 'agent-1' }
+
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "Maven-install"
+    }
+    environment { REPO_URL = 'https://github.com/nithinvarma-git/jenkins.git'
+                    BRANCH = 'master'
+    }
+         
+    stages {
+        stage('1.cleaningWS') {
+            steps {
+                // Get some code from a GitHub repository
+                cleanWs()
+            }
+        }
+        
+          stage('2.cloning Private-repo') {
+            steps {
+                // Get some code from a GitHub repository
+                git branch: "${BRANCH}",
+                url: "${REPO_URL}"
+            }
+        }
+        
+          stage('3.checking files')   {
+            steps {
+                // checking file whether they exist or not 
+                sh '''
+                ls -la
+                ls -la javaapp-standalone
+                '''
+            }
+        }
+        
+        
+          stage('4.compiling code')   {
+            steps {
+                // compiling the code 
+                dir ('javaapp-standalone') {
+                sh 'mvn clean compile'
+            }
+            }
+        }
+        
+          stage('5.testing')   {
+            steps {
+                // testing the code 
+                dir ('javaapp-standalone') {
+                sh 'mvn test'
+            }
+        }
+          }
+        
+
+          stage('5.deploy')   {
+            steps {
+                // deploying the code 
+                dir ('javaapp-standalone') {
+                sh '''
+                pkill -f "java -jar" || true 
+                mvn clean package 
+                nohup java -jar target/*.jar > app.log 2>&1 &
+                '''
+            }
+        }
+    }
+}
+        
+            post {
+                // Let me know If this got sucessful 
+                 success {
+                    echo 'Deployement sucessful'
+                }
+                // let me know if this failed 
+                failure {
+                    echo 'Deployement pipeline failed'
+                }
+            }
+}
