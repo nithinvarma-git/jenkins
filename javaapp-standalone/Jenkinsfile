@@ -1,10 +1,7 @@
 pipeline {
     agent { label 'agent-1' }
 
-    tools {
-        // Install the Maven version configured as "M3" and add it to the path.
-        maven "Maven-install"
-    }
+    
     environment { REPO_URL = 'https://github.com/nithinvarma-git/jenkins.git'
                     BRANCH = 'master'
     }
@@ -21,7 +18,9 @@ pipeline {
             steps {
                 // Get some code from a GitHub repository
                 git branch: "${BRANCH}",
-                url: "${REPO_URL}"
+                url: "${REPO_URL}",
+		credentialsId: 'git-cred'
+		
             }
         }
         
